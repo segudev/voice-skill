@@ -1,5 +1,7 @@
 # voice-skill
 
+[![skills.sh](https://www.skills.sh/b/segudev/voice-skill)](https://www.skills.sh/segudev/voice-skill)
+
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that speaks Claude's replies out loud on macOS using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts).
 
 Ask Claude something, say "voice this" (or turn voice mode on), and Claude writes its answer on screen **and** dictates a listening-optimized version through your speakers. Fully local, on CPU.
