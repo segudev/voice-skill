@@ -1,15 +1,23 @@
-# pocket-tts-voice
+# voice-skill
 
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that speaks Claude's replies out loud on macOS using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts).
 
-Ask Claude something, say "voice this" (or turn voice mode on), and Claude writes its answer on screen **and** dictates a listening-optimized version through your speakers. Runs fully local on CPU.
+Ask Claude something, say "voice this" (or turn voice mode on), and Claude writes its answer on screen **and** dictates a listening-optimized version through your speakers. Fully local, on CPU.
+
+## Why Pocket TTS
+
+Most local TTS is either slow, GPU-hungry, or a pain to set up. Pocket TTS is a great fit for talking back to you in a coding loop:
+
+- **Fast time-to-first-word.** It's a distilled, streaming model: it starts emitting audio almost immediately instead of rendering the whole clip first, so a reply begins speaking right away. With voice mode the model stays warm and replies start in a couple of seconds.
+- **Runs on CPU with zero config.** No GPU, no model wrangling, no server to stand up just to hear one sentence. `pocket-tts generate --text "hi"` works out of the box; the first run pulls the model and you're done.
+- **Clone any voice.** Pick a built-in voice by name (`michael`, `alba`, `eve`, ...) or point `--voice` at any `.wav` to clone it. This skill defaults to `michael`, and you can swap voices with one env var.
 
 ## How it works
 
 The skill is a `SKILL.md` (instructions for Claude) plus a `speak.sh` helper that wraps Pocket TTS:
 
-- **One-off** — `speak.sh "text"` runs `pocket-tts generate` and plays the result with `afplay`. The model reloads each call (~10s), but nothing stays running.
-- **Voice mode** — `speak.sh on` launches `pocket-tts serve` (a local FastAPI server) so the model stays warm. Subsequent replies route through `POST /tts` and play in ~5s. `speak.sh off` stops it.
+- **One-off** - `speak.sh "text"` runs `pocket-tts generate` and plays the result with `afplay`. The model reloads each call (~10s), but nothing stays running.
+- **Voice mode** - `speak.sh on` launches `pocket-tts serve` (a local FastAPI server) so the model stays warm. Subsequent replies stream through `POST /tts` and start playing in ~5s. `speak.sh off` stops it.
 
 `speak.sh` auto-routes: if the server is up it uses it, otherwise it falls back to a one-off generate. Defaults: **English**, voice **`michael`**.
 
@@ -26,11 +34,25 @@ The skill is a `SKILL.md` (instructions for Claude) plus a `speak.sh` helper tha
 
 ## Install
 
-Copy the `voice/` directory into your Claude Code skills folder:
+### With the `skills` CLI (recommended)
+
+This repo is compatible with the [open agent skills ecosystem](https://github.com/vercel-labs/skills):
 
 ```bash
-git clone https://github.com/segudev/pocket-tts-voice.git
-cp -r pocket-tts-voice/voice ~/.claude/skills/voice
+# Install the voice skill globally for Claude Code
+npx skills add segudev/voice-skill --skill voice -g -a claude-code
+
+# Or pick interactively
+npx skills add segudev/voice-skill
+```
+
+That installs the skill (with its `speak.sh` helper) to `~/.claude/skills/voice/`.
+
+### Manual
+
+```bash
+git clone https://github.com/segudev/voice-skill.git
+cp -r voice-skill/skills/voice ~/.claude/skills/voice
 chmod +x ~/.claude/skills/voice/speak.sh
 ```
 
@@ -50,9 +72,9 @@ chmod +x ~/.claude/skills/voice/speak.sh
 
 Talk to Claude normally and trigger it by voice:
 
-- "use voice to respond" / "voice this" / "say that aloud" — voice the next reply (one-off)
-- "voice mode on" — keep voicing every reply via the warm server
-- "voice off" / "text only" — stop voicing and shut the server down
+- "use voice to respond" / "voice this" / "say that aloud" - voice the next reply (one-off)
+- "voice mode on" - keep voicing every reply via the warm server
+- "voice off" / "text only" - stop voicing and shut the server down
 
 You can also drive the helper directly:
 
@@ -89,4 +111,4 @@ POCKET_TTS_LANG=french_24l ~/.claude/skills/voice/speak.sh on
 ## Credits
 
 - [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts) does the actual text-to-speech.
-- This repo is just the Claude Code skill glue around it.
+- This repo is just the Claude Code skill glue around it, packaged for the [skills](https://github.com/vercel-labs/skills) ecosystem.

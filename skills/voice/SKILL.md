@@ -21,6 +21,8 @@ The spoken version is NOT the markdown answer read verbatim. Convert it to clean
 
 ## Playing it
 
+The `speak.sh` helper is bundled next to this file. For a global Claude Code install it lives at `~/.claude/skills/voice/speak.sh`; for a project-scoped install it is `.claude/skills/voice/speak.sh`. Use whichever path exists.
+
 Pass the spoken text to the helper:
 
 ```bash
