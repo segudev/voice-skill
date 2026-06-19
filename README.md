@@ -2,24 +2,18 @@
 
 [![skills.sh](https://www.skills.sh/b/segudev/voice-skill)](https://www.skills.sh/segudev/voice-skill)
 
-An agent skill that speaks your agent's replies out loud using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts).
+Ask your agent something, say "voice this" (or turn voice mode on), and it writes its answer on screen **and** dictates almost immediately a listening-optimized version using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts), a fully local and ultra-lightweight TTS model:
 
-Ask your agent something, say "voice this" (or turn voice mode on), and it writes its answer on screen **and** dictates a listening-optimized version through your speakers. Fully local, on CPU.
-
-## Why Pocket TTS
-
-Most local TTS is either slow, GPU-hungry, or a pain to set up. Pocket TTS is a great fit for talking back to you in a coding loop:
-
-- **Fast time-to-first-word.** It's a distilled, streaming model: it starts emitting audio almost immediately instead of rendering the whole clip first, so a reply begins speaking right away. With voice mode the model stays warm and replies start in a couple of seconds.
-- **Runs on CPU with zero config.** No GPU, no model wrangling, no server to stand up just to hear one sentence. `pocket-tts generate --text "hi"` works out of the box; the first run pulls the model and you're done.
+- **Runs on CPU with zero config.** No remote server, no GPU, no model wrangling. `pocket-tts generate --text "hi"` works out of the box; the first run pulls the model and you're done.
+- **Ultra fast time-to-first-word.** It's a distilled, streaming model: it starts emitting audio almost immediately instead of rendering the whole clip first, so a reply begins speaking right away. With voice mode the model stays warm and replies start in a couple of seconds.
 - **Clone any voice.** Pick a built-in voice by name (`michael`, `alba`, `eve`, ...) or point `--voice` at any `.wav` to clone it. This skill defaults to `michael`, and you can swap voices with one env var.
 
 ## How it works
 
-The skill is a `SKILL.md` (instructions for the agent) plus a `speak.sh` helper that wraps Pocket TTS:
+ `SKILL.md` instructions plus a `speak.sh` helper that wraps Pocket TTS:
 
-- **One-off** - `speak.sh "text"` runs `pocket-tts generate` and plays the result through your speakers. The model reloads each call (~10s), but nothing stays running.
-- **Voice mode** - `speak.sh on` launches `pocket-tts serve` (a local FastAPI server) so the model stays warm. Subsequent replies stream through `POST /tts` and start playing in ~5s. `speak.sh off` stops it.
+- **One-off** - `speak.sh "text"` runs `pocket-tts generate` and plays the result through your speakers. The model reloads each call, nothing stays running.
+- **Voice mode** - `speak.sh on` launches `pocket-tts serve` (a local FastAPI server) so the model stays warm. Subsequent replies stream through `POST /tts` and start playing. `speak.sh off` stops it.
 
 `speak.sh` auto-routes: if the server is up it uses it, otherwise it falls back to a one-off generate. Defaults: **English**, voice **`michael`**.
 
@@ -32,9 +26,7 @@ The skill is a `SKILL.md` (instructions for the agent) plus a `speak.sh` helper 
   ```bash
   uv tool install pocket-tts
   ```
-
-  See the upstream repo for the authoritative install instructions.
-
+  
 ## Install
 
 ### With the `skills` CLI (recommended)
