@@ -1,6 +1,6 @@
 ---
 name: voice
-description: Speak Claude's reply aloud through Kyutai Pocket TTS on macOS. Use whenever the user asks to hear the answer instead of (or in addition to) reading it - triggers like "use voice to respond", "voice this", "say that aloud", "read your reply out loud", "dictate the answer", "respond with voice", or "turn voice mode on/off".
+description: Speak Claude's reply aloud through Kyutai Pocket TTS on macOS, Linux, or Windows. Use whenever the user asks to hear the answer instead of (or in addition to) reading it - triggers like "use voice to respond", "voice this", "say that aloud", "read your reply out loud", "dictate the answer", "respond with voice", or "turn voice mode on/off".
 ---
 
 # Voice replies (Pocket TTS)
@@ -54,3 +54,8 @@ The helper reads these environment variables (defaults shown):
 - `POCKET_TTS_VOICE` (default `michael`) - a built-in voice name (e.g. `alba`, `eve`, `george`, `michael`) or a path to a `.wav`/`.safetensors` clone file.
 - `POCKET_TTS_LANG` (default English) - language model id, e.g. `french_24l`, `spanish_24l`, `german_24l`, `italian_24l`, `portuguese_24l`. For French TTS, prefix `POCKET_TTS_LANG=french_24l` on the command (start the server with it too if using voice mode).
 - `POCKET_TTS_PORT` (default `8000`) - server port.
+- `POCKET_TTS_PLAYER` (default auto-detect) - audio player command. The helper auto-picks one per platform: `afplay` (macOS), `paplay`/`aplay`/`ffplay` (Linux), or PowerShell's SoundPlayer (Windows). Set this if none is found or you want a specific one, e.g. `POCKET_TTS_PLAYER="ffplay -nodisp -autoexit -loglevel quiet"`.
+
+## Platforms
+
+Works on macOS, Linux (Debian/Ubuntu), and Windows (run under Git Bash or WSL, which is what Claude Code uses for shell commands there). On Linux/Windows an audio player must be available; if playback fails with "no audio player found", install one (Debian/Ubuntu: `sudo apt install pulseaudio-utils` for `paplay`, or `ffmpeg` for `ffplay`) or set `POCKET_TTS_PLAYER`.

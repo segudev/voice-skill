@@ -2,7 +2,7 @@
 
 [![skills.sh](https://www.skills.sh/b/segudev/voice-skill)](https://www.skills.sh/segudev/voice-skill)
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that speaks Claude's replies out loud on macOS using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts).
+A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that speaks Claude's replies out loud on macOS, Linux, and Windows using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts).
 
 Ask Claude something, say "voice this" (or turn voice mode on), and Claude writes its answer on screen **and** dictates a listening-optimized version through your speakers. Fully local, on CPU.
 
@@ -18,15 +18,22 @@ Most local TTS is either slow, GPU-hungry, or a pain to set up. Pocket TTS is a 
 
 The skill is a `SKILL.md` (instructions for Claude) plus a `speak.sh` helper that wraps Pocket TTS:
 
-- **One-off** - `speak.sh "text"` runs `pocket-tts generate` and plays the result with `afplay`. The model reloads each call (~10s), but nothing stays running.
+- **One-off** - `speak.sh "text"` runs `pocket-tts generate` and plays the result through your speakers. The model reloads each call (~10s), but nothing stays running.
 - **Voice mode** - `speak.sh on` launches `pocket-tts serve` (a local FastAPI server) so the model stays warm. Subsequent replies stream through `POST /tts` and start playing in ~5s. `speak.sh off` stops it.
 
 `speak.sh` auto-routes: if the server is up it uses it, otherwise it falls back to a one-off generate. Defaults: **English**, voice **`michael`**.
 
 ## Requirements
 
-- macOS (uses the built-in `afplay` and `curl`)
-- [Pocket TTS](https://github.com/kyutai-labs/pocket-tts) on your `PATH` as `pocket-tts`:
+- **OS:** macOS, Linux (Debian/Ubuntu), or Windows. On Windows the skill runs under the bash environment Claude Code uses for shell commands (Git Bash or WSL).
+- **`curl`** (preinstalled on macOS and modern Windows; `sudo apt install curl` on Debian/Ubuntu).
+- **An audio player.** Auto-detected per platform:
+  - macOS: `afplay` (built in)
+  - Linux: `paplay` (`pulseaudio-utils`), `aplay` (`alsa-utils`), or `ffplay` (`ffmpeg`) - e.g. `sudo apt install pulseaudio-utils`
+  - Windows: falls back to PowerShell's built-in `SoundPlayer`, or use `ffplay`
+
+  Override with `POCKET_TTS_PLAYER` if you want a specific one.
+- **[Pocket TTS](https://github.com/kyutai-labs/pocket-tts)** on your `PATH` as `pocket-tts`:
 
   ```bash
   uv tool install pocket-tts
@@ -97,6 +104,7 @@ echo "piped text works too" | ~/.claude/skills/voice/speak.sh
 | `POCKET_TTS_VOICE` | `michael` | A built-in voice name (`alba`, `eve`, `george`, `michael`, ...) or a path to a `.wav`/`.safetensors` clone file. |
 | `POCKET_TTS_LANG` | English | Language model id, e.g. `french_24l`, `spanish_24l`, `german_24l`, `italian_24l`, `portuguese_24l`. |
 | `POCKET_TTS_PORT` | `8000` | Port for the warm server. |
+| `POCKET_TTS_PLAYER` | auto-detect | Audio player command, e.g. `POCKET_TTS_PLAYER="ffplay -nodisp -autoexit -loglevel quiet"`. |
 | `POCKET_TTS_STARTUP_TIMEOUT` | `180` | Seconds to wait for the server to become healthy on first start. |
 
 For French voice mode, start the server with the matching model:
