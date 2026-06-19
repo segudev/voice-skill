@@ -1,6 +1,6 @@
 ---
 name: voice
-description: Speak Claude's reply aloud through Kyutai Pocket TTS on macOS, Linux, or Windows. Use whenever the user asks to hear the answer instead of (or in addition to) reading it - triggers like "use voice to respond", "voice this", "say that aloud", "read your reply out loud", "dictate the answer", "respond with voice", or "turn voice mode on/off".
+description: Speak the agent's reply aloud through Kyutai Pocket TTS. Use whenever the user asks to hear the answer instead of (or in addition to) reading it - triggers like "use voice to respond", "voice this", "say that aloud", "read your reply out loud", "dictate the answer", "respond with voice", or "turn voice mode on/off".
 ---
 
 # Voice replies (Pocket TTS)
@@ -21,29 +21,29 @@ The spoken version is NOT the markdown answer read verbatim. Convert it to clean
 
 ## Playing it
 
-The `speak.sh` helper is bundled next to this file. For a global Claude Code install it lives at `~/.claude/skills/voice/speak.sh`; for a project-scoped install it is `.claude/skills/voice/speak.sh`. Use whichever path exists.
+The `speak.sh` helper is bundled in this skill's directory. Invoke it by its path (wherever the skill was installed).
 
 Pass the spoken text to the helper:
 
 ```bash
-~/.claude/skills/voice/speak.sh "your spoken text here"
+speak.sh "your spoken text here"
 ```
 
 For multi-line or long text, pipe it instead to avoid quoting issues:
 
 ```bash
-~/.claude/skills/voice/speak.sh <<'EOF'
+speak.sh <<'EOF'
 your spoken text here
 EOF
 ```
 
-The helper auto-routes: if voice mode is on it uses the warm background server (fast); otherwise it does a one-off `pocket-tts generate`. Either way it plays the audio with `afplay` and blocks until playback finishes. Run it after you have written the text answer.
+The helper auto-routes: if voice mode is on it uses the warm background server (fast); otherwise it does a one-off `pocket-tts generate`. Either way it plays the audio through your speakers and blocks until playback finishes. Run it after you have written the text answer.
 
 ## One-off vs voice mode
 
 - **One-off** (user says "voice this" once): just call `speak.sh "..."`. No server, slower first synth, nothing left running.
-- **Voice mode** (user says "voice mode on" / "keep responding with voice"): first run `~/.claude/skills/voice/speak.sh on` to launch the warm server, then voice every subsequent reply with `speak.sh "..."` (now fast). The first `on` may take a minute to load the model.
-- **Turn it off** (user says "voice off", "stop the voice", "text only"): run `~/.claude/skills/voice/speak.sh off` and go back to text-only replies.
+- **Voice mode** (user says "voice mode on" / "keep responding with voice"): first run `speak.sh on` to launch the warm server, then voice every subsequent reply with `speak.sh "..."` (now fast). The first `on` may take a minute to load the model.
+- **Turn it off** (user says "voice off", "stop the voice", "text only"): run `speak.sh off` and go back to text-only replies.
 
 `speak.sh status` reports whether the server is up.
 
@@ -54,8 +54,9 @@ The helper reads these environment variables (defaults shown):
 - `POCKET_TTS_VOICE` (default `michael`) - a built-in voice name (e.g. `alba`, `eve`, `george`, `michael`) or a path to a `.wav`/`.safetensors` clone file.
 - `POCKET_TTS_LANG` (default English) - language model id, e.g. `french_24l`, `spanish_24l`, `german_24l`, `italian_24l`, `portuguese_24l`. For French TTS, prefix `POCKET_TTS_LANG=french_24l` on the command (start the server with it too if using voice mode).
 - `POCKET_TTS_PORT` (default `8000`) - server port.
-- `POCKET_TTS_PLAYER` (default auto-detect) - audio player command. The helper auto-picks one per platform: `afplay` (macOS), `paplay`/`aplay`/`ffplay` (Linux), or PowerShell's SoundPlayer (Windows). Set this if none is found or you want a specific one, e.g. `POCKET_TTS_PLAYER="ffplay -nodisp -autoexit -loglevel quiet"`.
+- `POCKET_TTS_PLAYER` (default auto-detect) - audio player command. The helper auto-detects a common player; set this to force a specific one or if none is found, e.g. `POCKET_TTS_PLAYER="ffplay -nodisp -autoexit -loglevel quiet"`.
 
-## Platforms
+## Notes
 
-Works on macOS, Linux (Debian/Ubuntu), and Windows (run under Git Bash or WSL, which is what Claude Code uses for shell commands there). On Linux/Windows an audio player must be available; if playback fails with "no audio player found", install one (Debian/Ubuntu: `sudo apt install pulseaudio-utils` for `paplay`, or `ffmpeg` for `ffplay`) or set `POCKET_TTS_PLAYER`.
+- An audio player must be available. If playback reports "no audio player found", install one (e.g. `ffmpeg` for `ffplay`) or set `POCKET_TTS_PLAYER`.
+- The first run downloads the model and selected voice; later runs are quick.

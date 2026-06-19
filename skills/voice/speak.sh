@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Speak text with Kyutai Pocket TTS and play it through the speakers.
-# Cross-platform: macOS, Linux (Debian/Ubuntu), and Windows (Git Bash / WSL / MSYS).
+# Plays audio through whichever common player is available (override with POCKET_TTS_PLAYER).
 #
 # Usage:
 #   speak.sh "text to speak"      Speak text. Uses the warm server if voice mode
@@ -43,7 +43,7 @@ play_audio() {
     return
   fi
 
-  if   command -v afplay >/dev/null 2>&1; then afplay "$wav"; return            # macOS
+  if   command -v afplay >/dev/null 2>&1; then afplay "$wav"; return            # CoreAudio
   elif command -v paplay >/dev/null 2>&1; then paplay "$wav"; return            # PulseAudio/PipeWire
   elif command -v aplay  >/dev/null 2>&1; then aplay -q "$wav"; return          # ALSA
   elif command -v ffplay >/dev/null 2>&1; then ffplay -nodisp -autoexit -loglevel quiet "$wav"; return
@@ -52,7 +52,7 @@ play_audio() {
   elif command -v cvlc   >/dev/null 2>&1; then cvlc --play-and-exit --quiet "$wav" >/dev/null 2>&1; return
   fi
 
-  # Windows without a unix player: fall back to PowerShell's SoundPlayer.
+  # No PATH player found: fall back to PowerShell's SoundPlayer.
   case "$(uname -s 2>/dev/null || echo unknown)" in
     MINGW*|MSYS*|CYGWIN*)
       local winpath="$wav"

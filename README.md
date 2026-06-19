@@ -2,9 +2,9 @@
 
 [![skills.sh](https://www.skills.sh/b/segudev/voice-skill)](https://www.skills.sh/segudev/voice-skill)
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skill that speaks Claude's replies out loud on macOS, Linux, and Windows using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts).
+An agent skill that speaks your agent's replies out loud using [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts).
 
-Ask Claude something, say "voice this" (or turn voice mode on), and Claude writes its answer on screen **and** dictates a listening-optimized version through your speakers. Fully local, on CPU.
+Ask your agent something, say "voice this" (or turn voice mode on), and it writes its answer on screen **and** dictates a listening-optimized version through your speakers. Fully local, on CPU.
 
 ## Why Pocket TTS
 
@@ -16,7 +16,7 @@ Most local TTS is either slow, GPU-hungry, or a pain to set up. Pocket TTS is a 
 
 ## How it works
 
-The skill is a `SKILL.md` (instructions for Claude) plus a `speak.sh` helper that wraps Pocket TTS:
+The skill is a `SKILL.md` (instructions for the agent) plus a `speak.sh` helper that wraps Pocket TTS:
 
 - **One-off** - `speak.sh "text"` runs `pocket-tts generate` and plays the result through your speakers. The model reloads each call (~10s), but nothing stays running.
 - **Voice mode** - `speak.sh on` launches `pocket-tts serve` (a local FastAPI server) so the model stays warm. Subsequent replies stream through `POST /tts` and start playing in ~5s. `speak.sh off` stops it.
@@ -25,14 +25,8 @@ The skill is a `SKILL.md` (instructions for Claude) plus a `speak.sh` helper tha
 
 ## Requirements
 
-- **OS:** macOS, Linux (Debian/Ubuntu), or Windows. On Windows the skill runs under the bash environment Claude Code uses for shell commands (Git Bash or WSL).
-- **`curl`** (preinstalled on macOS and modern Windows; `sudo apt install curl` on Debian/Ubuntu).
-- **An audio player.** Auto-detected per platform:
-  - macOS: `afplay` (built in)
-  - Linux: `paplay` (`pulseaudio-utils`), `aplay` (`alsa-utils`), or `ffplay` (`ffmpeg`) - e.g. `sudo apt install pulseaudio-utils`
-  - Windows: falls back to PowerShell's built-in `SoundPlayer`, or use `ffplay`
-
-  Override with `POCKET_TTS_PLAYER` if you want a specific one.
+- **`curl`** on your `PATH`.
+- **An audio player** on your `PATH`. The helper auto-detects a common one (`afplay`, `paplay`, `aplay`, `ffplay`, `play`, `mpv`, or `cvlc`). Override with `POCKET_TTS_PLAYER` to force a specific one.
 - **[Pocket TTS](https://github.com/kyutai-labs/pocket-tts)** on your `PATH` as `pocket-tts`:
 
   ```bash
@@ -48,51 +42,37 @@ The skill is a `SKILL.md` (instructions for Claude) plus a `speak.sh` helper tha
 This repo is compatible with the [open agent skills ecosystem](https://github.com/vercel-labs/skills):
 
 ```bash
-# Install the voice skill globally for Claude Code
-npx skills add segudev/voice-skill --skill voice -g -a claude-code
-
-# Or pick interactively
 npx skills add segudev/voice-skill
 ```
 
-That installs the skill (with its `speak.sh` helper) to `~/.claude/skills/voice/`.
+That installs the skill (with its `speak.sh` helper) into your agent's skills directory.
 
 ### Manual
 
 ```bash
 git clone https://github.com/segudev/voice-skill.git
-cp -r voice-skill/skills/voice ~/.claude/skills/voice
-chmod +x ~/.claude/skills/voice/speak.sh
+cp -r voice-skill/skills/voice <your-agent-skills-directory>/voice
+chmod +x <your-agent-skills-directory>/voice/speak.sh
 ```
 
-(Optional) To avoid a permission prompt every time Claude runs the helper, add it to your Claude Code allowlist in `~/.claude/settings.json`:
-
-```json
-{
-  "permissions": {
-    "allow": [
-      "Bash(~/.claude/skills/voice/speak.sh:*)"
-    ]
-  }
-}
-```
+(Optional) Allow the helper in your agent's permission settings to avoid a prompt every time it runs.
 
 ## Usage
 
-Talk to Claude normally and trigger it by voice:
+Talk to your agent normally and trigger it by voice:
 
 - "use voice to respond" / "voice this" / "say that aloud" - voice the next reply (one-off)
 - "voice mode on" - keep voicing every reply via the warm server
 - "voice off" / "text only" - stop voicing and shut the server down
 
-You can also drive the helper directly:
+You can also drive the helper directly (use the path where the skill was installed):
 
 ```bash
-~/.claude/skills/voice/speak.sh "Hello from Pocket TTS."   # speak text
-echo "piped text works too" | ~/.claude/skills/voice/speak.sh
-~/.claude/skills/voice/speak.sh on                          # voice mode on (warm server)
-~/.claude/skills/voice/speak.sh status                      # is the server up?
-~/.claude/skills/voice/speak.sh off                         # voice mode off
+speak.sh "Hello from Pocket TTS."   # speak text
+echo "piped text works too" | speak.sh
+speak.sh on                          # voice mode on (warm server)
+speak.sh status                      # is the server up?
+speak.sh off                         # voice mode off
 ```
 
 ## Configuration
@@ -107,18 +87,18 @@ echo "piped text works too" | ~/.claude/skills/voice/speak.sh
 | `POCKET_TTS_PLAYER` | auto-detect | Audio player command, e.g. `POCKET_TTS_PLAYER="ffplay -nodisp -autoexit -loglevel quiet"`. |
 | `POCKET_TTS_STARTUP_TIMEOUT` | `180` | Seconds to wait for the server to become healthy on first start. |
 
-For French voice mode, start the server with the matching model:
+For a non-English voice mode, start the server with the matching model:
 
 ```bash
-POCKET_TTS_LANG=french_24l ~/.claude/skills/voice/speak.sh on
+POCKET_TTS_LANG=french_24l speak.sh on
 ```
 
 ## Notes
 
 - The first run downloads the model (and the selected voice) from Hugging Face and is slower; later runs are quick.
-- Voice mode keeps a Python process running until you call `speak.sh off`.
+- Voice mode keeps a process running until you call `speak.sh off`.
 
 ## Credits
 
 - [Kyutai Pocket TTS](https://github.com/kyutai-labs/pocket-tts) does the actual text-to-speech.
-- This repo is just the Claude Code skill glue around it, packaged for the [skills](https://github.com/vercel-labs/skills) ecosystem.
+- This repo is just the skill glue around it, packaged for the [skills](https://github.com/vercel-labs/skills) ecosystem.
