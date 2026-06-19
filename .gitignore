@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# Generated audio / runtime state
+*.wav
+tts_output.wav
+server.log
+server.pid
